@@ -27,7 +27,7 @@
     <?php
     // Database configuration
     $host = 'localhost';
-    $dbname = 'utx299ug72uc9_dbkgyginqghrrn';
+    $dbname = 'utx299ug72uc9_products_db';
     $username = 'utx299ug72uc9_dbuser';
     $password = '@Ilovetufts1';
 
