@@ -2,22 +2,16 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// ----------------------------
-// DATABASE CONFIG (SITEGROUND)
-// ----------------------------
 $host = 'localhost'; 
 $dbname = 'dbkgyginqghrrn';  
 $username = 'utx299ug72uc9_Eyobel';  
-$password = 'DATABASEPWORD123'; 
-$charset = 'utf8mb4';
+$password = 'DATABASEPWORD123';
 
-// Initialize variables
 $products = [];
 $status_message = "";
 $status_color = "red";
 
 try {
-    // 1. Establish PDO Connection
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=$charset",
         $username,
@@ -28,7 +22,6 @@ try {
         ]
     );
 
-    // 2. Create the 'products' table if it doesn't exist
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS products (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,12 +32,9 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
 
-    // 3. Check if table is empty (This ensures data is only inserted once)
     $count = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
 
     if ($count == 0) {
-        // --- THIS BLOCK MAKES THE DATABASE "OCCUPIED" ---
-        // Using public placeholder image URLs for immediate visual results
         $insert = "
             INSERT INTO products (name, description, price, image_url) VALUES
             ('Cole Haan Oxfords', 'Full-grain oiled leather cap-toe shoe.', 99.99, 'images/colehaanshoes.jpg'),
@@ -60,14 +50,12 @@ try {
         $status_message = "✓ Database connection successful. Found " . $count . " products.";
     }
     
-    // 4. Fetch all products for display
     $stmt = $pdo->query("SELECT * FROM products ORDER BY id");
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $status_color = "green";
 
 
 } catch (PDOException $e) {
-    // 5. Handle and display connection errors
     $status_message = "✗ Database connection error: " . htmlspecialchars($e->getMessage());
     $status_message .= "<br>Check your database credentials: Host (`localhost`), Name (`dbkgyginqghrrn`), User (`utx299ug72uc9`), and Password.";
     $status_color = "red";
@@ -79,7 +67,6 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PHP Database Product Viewer</title>
-    <!-- Combined CSS for a single-file solution -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -164,13 +151,11 @@ try {
 
 <h1>Men's Fashion Collection (Live Data)</h1>
 
-<!-- PHP block for displaying connection status -->
 <div class="status-message" style="color: <?php echo $status_color; ?>; border: 1px solid <?php echo $status_color; ?>; background-color: <?php echo $status_color === 'green' ? '#d1fae5' : '#fee2e2'; ?>;">
     <?php echo $status_message; ?>
 </div>
 
 <div class="product-container">
-<!-- PHP block for looping through and displaying products -->
 <?php if (!empty($products)): ?>
     <?php foreach ($products as $product): ?>
         <div class="product-card">
