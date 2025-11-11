@@ -36,7 +36,6 @@
         $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
-        // Create table if it doesn't exist
         $createTable = "CREATE TABLE IF NOT EXISTS products (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
@@ -46,11 +45,10 @@
         )";
         $pdo->exec($createTable);
         
-        // Check if table is empty and insert sample data
         $count = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
         
         if ($count == 0) {
-            // Insert actual products
+            // Insert products
             $insertData = "INSERT INTO products (name, description, price, image_url) VALUES
                 ('Cole Haan Modern Essentials Cap Oxford', 'Full-grain oiled leather cap-toe shoe for smart-casual or dress wear', 99.99, 'images/colehaanshoes.jpg'),
                 ('On Men\'s Cloud 6 Sneakers', 'Lightweight cushioning sneakers with elastic laces, sporty-chic style', 159.99, 'images/on.jpg'),
@@ -98,7 +96,6 @@
     }
     ?>
 </div>
-```
 
 </body>
 </html>
