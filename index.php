@@ -1,15 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Database</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-<h1>Men's Fashion Collection</h1>
-
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -17,16 +5,19 @@ ini_set('display_errors', 1);
 // ----------------------------
 // DATABASE CONFIG (SITEGROUND)
 // ----------------------------
-$host = 'localhost';
+$host = 'localhost'; 
 $dbname = 'dbkgyginqghrrn';  
-$username = 'utx299ug72uc9';  
-$password = 'databasepword1'; 
+$username = 'utx299ug72uc9_Eyobel';  
+$password = 'DATABASEPWORD123'; 
 $charset = 'utf8mb4';
 
-// Initialize products array
+// Initialize variables
 $products = [];
+$status_message = "";
+$status_color = "red";
 
 try {
+    // 1. Establish PDO Connection
     $pdo = new PDO(
         "mysql:host=$host;dbname=$dbname;charset=$charset",
         $username,
@@ -37,7 +28,7 @@ try {
         ]
     );
 
-    // Create table if not exists
+    // 2. Create the 'products' table if it doesn't exist
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS products (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,37 +39,138 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
 
-    // Check if table is empty
+    // 3. Check if table is empty (This ensures data is only inserted once)
     $count = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
 
     if ($count == 0) {
-        // Insert sample data
+        // --- THIS BLOCK MAKES THE DATABASE "OCCUPIED" ---
+        // Using public placeholder image URLs for immediate visual results
         $insert = "
             INSERT INTO products (name, description, price, image_url) VALUES
-            ('Cole Haan Modern Essentials Cap Oxford', 'Full-grain oiled leather cap-toe shoe for smart-casual or dress wear', 99.99, 'images/colehaanshoes.jpg'),
-            ('On Men''s Cloud 6 Sneakers', 'Lightweight cushioning sneakers with elastic laces, sporty-chic style', 159.99, 'images/on.jpg'),
-            ('L.L.Bean Men''s Slim Fit Signature Washed Field Shirt', 'Rugged herringbone fabric, garment-dyed for a worn-in look, slim fit', 89.00, 'images/llbeanshirt.jpg'),
-            ('Michael Kors Men''s Classic Fit Stretch Dress Pants', 'Tailored dress pants with stretch fabric for comfort', 47.50, 'images/michaelkors.jpg'),
-            ('Urban Outfitters Cotton Jump Shot Hoodie', 'Casual cotton hoodie, great for daily wear', 39.00, 'images/urban.jpg'),
-            ('Calvin Klein Men''s Classic Fit Coleman Overcoat', 'Notch-lapel long overcoat, tailored look', 118.50, 'images/calvinklein.jpg')
+            ('Cole Haan Oxfords', 'Full-grain oiled leather cap-toe shoe.', 99.99, 'images/colehaanshoes.jpg'),
+            ('On Cloud 6 Sneakers', 'Lightweight cushioning sneakers with elastic laces.', 159.99, 'images/on.jpg'),
+            ('LLBean Field Shirt', 'Rugged herringbone fabric, garment-dyed for a worn-in look.', 89.00, 'images/llbeanshirt.jpg'),
+            ('Michael Kors Stretch Dress Pants', 'Tailored dress pants with stretch fabric for comfort.', 47.50, 'images/michaelkors.jpg'),
+            ('Urban Outfitters Hoodie', 'Casual cotton hoodie, great for daily wear.', 39.00, 'images/urban.jpg'),
+            ('Calvin Klein Overcoat', 'Notch-lapel long overcoat, tailored look.', 118.50, 'images/calvinklein.jpg')
         ";
         $pdo->exec($insert);
-        echo "<p style='color:green;'>✓ Sample data inserted successfully!</p>";
+        $status_message = "✓ Database connection successful. Sample data inserted successfully! Found 6 products.";
+    } else {
+        $status_message = "✓ Database connection successful. Found " . $count . " products.";
     }
-
-    // Fetch all products
+    
+    // 4. Fetch all products for display
     $stmt = $pdo->query("SELECT * FROM products ORDER BY id");
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $status_color = "green";
 
-    echo "<p style='color:green;'>✓ Connected to database successfully! Found " . count($products) . " products.</p>";
 
 } catch (PDOException $e) {
-    echo "<p style='color:red;'>✗ Database error: " . htmlspecialchars($e->getMessage()) . "</p>";
-    echo "<p style='color:orange;'>Check your database credentials in SiteGround Site Tools → MySQL</p>";
+    // 5. Handle and display connection errors
+    $status_message = "✗ Database connection error: " . htmlspecialchars($e->getMessage());
+    $status_message .= "<br>Check your database credentials: Host (`localhost`), Name (`dbkgyginqghrrn`), User (`utx299ug72uc9`), and Password.";
+    $status_color = "red";
 }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHP Database Product Viewer</title>
+    <!-- Combined CSS for a single-file solution -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #3b82f6;
+            margin-bottom: 30px;
+        }
+        .status-message {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .product-card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+        .product-image {
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e5e7eb;
+        }
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .placeholder {
+            font-size: 40px;
+            font-weight: bold;
+            color: #6b7280;
+        }
+        .product-info {
+            padding: 15px;
+            flex-grow: 1;
+        }
+        .product-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #1f2937;
+        }
+        .product-description {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #10b981;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Men's Fashion Collection (Live Data)</h1>
+
+<!-- PHP block for displaying connection status -->
+<div class="status-message" style="color: <?php echo $status_color; ?>; border: 1px solid <?php echo $status_color; ?>; background-color: <?php echo $status_color === 'green' ? '#d1fae5' : '#fee2e2'; ?>;">
+    <?php echo $status_message; ?>
+</div>
 
 <div class="product-container">
+<!-- PHP block for looping through and displaying products -->
 <?php if (!empty($products)): ?>
     <?php foreach ($products as $product): ?>
         <div class="product-card">
@@ -86,7 +178,9 @@ try {
             <div class="product-image">
                 <?php if (!empty($product['image_url'])): ?>
                     <img src="<?= htmlspecialchars($product['image_url']); ?>" 
-                         alt="<?= htmlspecialchars($product['name']); ?>">
+                         alt="<?= htmlspecialchars($product['name']); ?>"
+                         onerror="this.onerror=null;this.src='https://placehold.co/300x150/CCCCCC/666666?text=NO+IMG';"
+                    >
                 <?php else: ?>
                     <div class="placeholder">
                         <?= strtoupper(substr($product['name'], 0, 1)); ?>
@@ -103,7 +197,7 @@ try {
         </div>
     <?php endforeach; ?>
 <?php else: ?>
-    <p style="color: #666; text-align: center; width: 100%;">No products found. Check database connection.</p>
+    <p style="color: #666; text-align: center; width: 100%;">No products found. Please check the database connection details above.</p>
 <?php endif; ?>
 </div>
 
