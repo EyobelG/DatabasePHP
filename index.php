@@ -12,24 +12,28 @@
 
 <?php
 error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // ----------------------------
 // DATABASE CONFIG (SITEGROUND)
 // ----------------------------
 $host = 'localhost';
-$dbname = 'utx299ug72uc9_dbkgyginqghrrn';
-$username = 'utx299ug72uc9_dbuser';
-$password = '@Ilovetufts1';
+$dbname = 'dbkgyginqghrrn';  
+$username = 'utx299ug72uc9';  
+$password = 'databasepword1'; 
+$charset = 'utf8mb4';
+
+// Initialize products array
+$products = [];
 
 try {
-    // SiteGround requires charset explicitly
     $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
+        "mysql:host=$host;dbname=$dbname;charset=$charset",
         $username,
         $password,
         [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_EMULATE_PREPARES => true
+            PDO::ATTR_EMULATE_PREPARES => false
         ]
     );
 
@@ -41,13 +45,14 @@ try {
             description TEXT,
             price DECIMAL(10,2) NOT NULL,
             image_url VARCHAR(255)
-        )
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
 
-    // Insert only if empty
+    // Check if table is empty
     $count = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
 
     if ($count == 0) {
+        // Insert sample data
         $insert = "
             INSERT INTO products (name, description, price, image_url) VALUES
             ('Cole Haan Modern Essentials Cap Oxford', 'Full-grain oiled leather cap-toe shoe for smart-casual or dress wear', 99.99, 'images/colehaanshoes.jpg'),
@@ -58,40 +63,48 @@ try {
             ('Calvin Klein Men''s Classic Fit Coleman Overcoat', 'Notch-lapel long overcoat, tailored look', 118.50, 'images/calvinklein.jpg')
         ";
         $pdo->exec($insert);
+        echo "<p style='color:green;'>✓ Sample data inserted successfully!</p>";
     }
 
     // Fetch all products
     $stmt = $pdo->query("SELECT * FROM products ORDER BY id");
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    echo "<p style='color:green;'>✓ Connected to database successfully! Found " . count($products) . " products.</p>";
+
 } catch (PDOException $e) {
-    echo "<p style='color:red;'>Database connection failed: " . $e->getMessage() . "</p>";
+    echo "<p style='color:red;'>✗ Database error: " . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "<p style='color:orange;'>Check your database credentials in SiteGround Site Tools → MySQL</p>";
 }
 ?>
 
 <div class="product-container">
-<?php foreach ($products as $product): ?>
-    <div class="product-card">
-        
-        <div class="product-image">
-            <?php if (!empty($product['image_url'])): ?>
-                <img src="<?= htmlspecialchars($product['image_url']); ?>" 
-                     alt="<?= htmlspecialchars($product['name']); ?>">
-            <?php else: ?>
-                <div class="placeholder">
-                    <?= strtoupper(substr($product['name'], 0, 1)); ?>
-                </div>
-            <?php endif; ?>
-        </div>
+<?php if (!empty($products)): ?>
+    <?php foreach ($products as $product): ?>
+        <div class="product-card">
+            
+            <div class="product-image">
+                <?php if (!empty($product['image_url'])): ?>
+                    <img src="<?= htmlspecialchars($product['image_url']); ?>" 
+                         alt="<?= htmlspecialchars($product['name']); ?>">
+                <?php else: ?>
+                    <div class="placeholder">
+                        <?= strtoupper(substr($product['name'], 0, 1)); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
 
-        <div class="product-info">
-            <div class="product-name"><?= htmlspecialchars($product['name']); ?></div>
-            <div class="product-description"><?= htmlspecialchars($product['description']); ?></div>
-            <div class="product-price">$<?= number_format($product['price'], 2); ?></div>
-        </div>
+            <div class="product-info">
+                <div class="product-name"><?= htmlspecialchars($product['name']); ?></div>
+                <div class="product-description"><?= htmlspecialchars($product['description']); ?></div>
+                <div class="product-price">$<?= number_format($product['price'], 2); ?></div>
+            </div>
 
-    </div>
-<?php endforeach; ?>
+        </div>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p style="color: #666; text-align: center; width: 100%;">No products found. Check database connection.</p>
+<?php endif; ?>
 </div>
 
 </body>
