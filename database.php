@@ -2,10 +2,14 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// ----------------------------
+// DATABASE CONFIG (SITEGROUND)
+// ----------------------------
 $host = 'localhost'; 
 $dbname = 'dbkgyginqghrrn';  
-$username = 'utx299ug72uc9_Eyobel';  
+$username = 'utx299ug72uc9';  
 $password = 'DATABASEPWORD123';
+$charset = 'utf8mb4'; 
 
 $products = [];
 $status_message = "";
@@ -13,7 +17,7 @@ $status_color = "red";
 
 try {
     $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=$charset",
+        "mysql:host=$host;dbname=$dbname",
         $username,
         $password,
         [
@@ -21,6 +25,8 @@ try {
             PDO::ATTR_EMULATE_PREPARES => false
         ]
     );
+    
+    $pdo->exec("SET NAMES utf8mb4");
 
     $pdo->exec("
         CREATE TABLE IF NOT EXISTS products (
@@ -53,7 +59,6 @@ try {
     $stmt = $pdo->query("SELECT * FROM products ORDER BY id");
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $status_color = "green";
-
 
 } catch (PDOException $e) {
     $status_message = "✗ Database connection error: " . htmlspecialchars($e->getMessage());
