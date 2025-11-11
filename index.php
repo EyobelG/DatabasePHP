@@ -54,10 +54,10 @@
             $insertData = "INSERT INTO products (name, description, price, image_url) VALUES
                 ('Cole Haan Modern Essentials Cap Oxford', 'Full-grain oiled leather cap-toe shoe for smart-casual or dress wear', 99.99, 'images/colehaanshoes.jpg'),
                 ('On Men\'s Cloud 6 Sneakers', 'Lightweight cushioning sneakers with elastic laces, sporty-chic style', 159.99, 'images/on.jpg'),
-                ('L.L.Bean Men\'s Slim Fit Signature Washed Field Shirt', 'Rugged herringbone fabric, garment-dyed for a worn-in look, slim fit', 89.00, 'images/llbean-shirt.jpg'),
-                ('Michael Kors Men\'s Classic Fit Stretch Dress Pants', 'Tailored dress pants incorporating stretch fabric for comfort and style', 47.50, 'images/michael-kors-pants.jpg'),
-                ('Urban Outfitters Cotton Jump Shot Hoodie', 'Casual hoodie in cotton, versatile for everyday wear', 39.00, 'images/urban-outfitters-hoodie.jpg'),
-                ('Calvin Klein Men\'s Classic Fit Coleman Overcoat', 'Notch-lapel long overcoat, clean tailored look for colder days', 118.50, 'images/calvin-klein-overcoat.jpg')";
+                ('L.L.Bean Men\'s Slim Fit Signature Washed Field Shirt', 'Rugged herringbone fabric, garment-dyed for a worn-in look, slim fit', 89.00, 'images/llbeanshirt.jpg'),
+                ('Michael Kors Men\'s Classic Fit Stretch Dress Pants', 'Tailored dress pants incorporating stretch fabric for comfort and style', 47.50, 'images/michaelkors.jpg'),
+                ('Urban Outfitters Cotton Jump Shot Hoodie', 'Casual hoodie in cotton, versatile for everyday wear', 39.00, 'images/urban.jpg'),
+                ('Calvin Klein Men\'s Classic Fit Coleman Overcoat', 'Notch-lapel long overcoat, clean tailored look for colder days', 118.50, 'images/calvinklein.jpg')";
             $pdo->exec($insertData);
         }
         
