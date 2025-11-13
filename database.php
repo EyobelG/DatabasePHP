@@ -7,81 +7,82 @@ ini_set('display_errors', 1);
 // ----------------------------
 $servername = "localhost";
 $username   = "utx299ug72uc9";
-$password   = "DATABASEPWORD123";  
+$password   = "DATABASEPWORD123";
 $dbname     = "dbkgyginqghrrn";
 
-$status_color    = "green";
-$status_message  = "";
-$products        = [];
+$status_color   = "green";
+$status_message = "";
+$products       = [];
 
-$conn = @new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
+// ----------------------------
+// CONNECT
+// ----------------------------
+try {
+    $conn = new mysqli($servername, $username, $password, $dbname);
+} catch (mysqli_sql_exception $e) {
+    $conn = false; // Indicate connection failure
+}
+if ($conn === false) {
+    $status_color   = "red";
+    $status_message = "Database connection failed. Please check credentials or server status.";
+} elseif ($conn->connect_error) {
     $status_color   = "red";
     $status_message = "Database connection failed: " . htmlspecialchars($conn->connect_error);
 } else {
     $conn->set_charset('utf8mb4');
 
-    $createSql = "
-        CREATE TABLE IF NOT EXISTS products (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            description TEXT,
-            price DECIMAL(10,2) NOT NULL,
-            image_url VARCHAR(255)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    ";
-    if (!$conn->query($createSql)) {
-        $status_color   = "red";
-        $status_message = "Failed creating table: " . htmlspecialchars($conn->error);
-    } else {
-    
-        $count = 0;
-        $res = $conn->query("SELECT COUNT(*) AS cnt FROM products");
-        if ($res) {
-            $row = $res->fetch_assoc();
-            $count = (int)$row['cnt'];
-            $res->free();
-        } else {
-            $status_color   = "red";
-            $status_message = "Failed counting products: " . htmlspecialchars($conn->error);
-        }
+    // Use a new try/catch block for all database operations
+    try {
+        // Create table if missing
+        $conn->query("
+            CREATE TABLE IF NOT EXISTS products (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                price DECIMAL(10,2) NOT NULL,
+                image_url VARCHAR(255)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        ");
 
-        if ($status_color !== "red" && $count === 0) {
-            $insert = "
-                INSERT INTO products (name, description, price, image_url) VALUES
-                ('Cole Haan Oxfords', 'Full-grain oiled leather cap-toe shoe.', 99.99, 'images/colehaanshoes.jpg'),
-                ('On Cloud 6 Sneakers', 'Lightweight cushioning sneakers with elastic laces.', 159.99, 'images/on.jpg'),
-                ('LLBean Field Shirt', 'Rugged herringbone fabric, garment-dyed for a worn-in look.', 89.00, 'images/llbeanshirt.jpg'),
-                ('Michael Kors Stretch Dress Pants', 'Tailored dress pants with stretch fabric for comfort.', 47.50, 'images/michaelkors.jpg'),
-                ('Urban Outfitters Hoodie', 'Casual cotton hoodie, great for daily wear.', 39.00, 'images/urban.jpg'),
-                ('Calvin Klein Overcoat', 'Notch-lapel long overcoat, tailored look.', 118.50, 'images/calvinklein.jpg')
-            ";
-            if ($conn->query($insert)) {
-                $count = 6;
+        // Count rows
+        $countResult = $conn->query("SELECT COUNT(*) AS cnt FROM products");
+        $count = (int)$countResult->fetch_assoc()['cnt'];
+        $countResult->free();
+
+        // Seed only if empty
+        if ($count === 0) {
+            $insertSql = "
+                    INSERT INTO products (name, description, price, image_url) VALUES
+                    ('Cole Haan Oxfords', 'Full-grain oiled leather cap-toe shoe.', 99.99, 'images/colehaanshoes.jpg'),
+                    ('On Cloud 6 Sneakers', 'Lightweight cushioning sneakers with elastic laces.', 159.99, 'images/on.jpg'),
+                    ('LLBean Field Shirt', 'Rugged herringbone fabric, garment-dyed for a worn-in look.', 89.00, 'images/llbeanshirt.jpg'),
+                    ('Michael Kors Stretch Dress Pants', 'Tailored dress pants with stretch fabric for comfort.', 47.50, 'images/michaelkors.jpg'),
+                    ('Urban Outfitters Hoodie', 'Casual cotton hoodie, great for daily wear.', 39.00, 'images/urban.jpg'),
+                    ('Calvin Klein Overcoat', 'Notch-lapel long overcoat, tailored look.', 118.50, 'images/calvinklein.jpg')
+                ";
+            if ($conn->query($insertSql)) {
+                $count = $conn->affected_rows;
                 $status_message = "✓ Database connection successful. Sample data inserted successfully! Found {$count} products.";
             } else {
-                $status_color   = "red";
-                $status_message = "Connected, but failed inserting sample data: " . htmlspecialchars($conn->error);
+                // This will be caught by the catch block
+                throw new Exception("Connected, but failed inserting sample data: " . $conn->error);
             }
-        } elseif ($status_color !== "red") {
+        } else {
             $status_message = "✓ Database connection successful. Found {$count} products.";
         }
 
-        // ----------------------------
-        // FETCH PRODUCTS
-        // ----------------------------
-        if ($status_color !== "red") {
-            $stmt = $conn->query("SELECT * FROM products ORDER BY id");
-            if ($stmt) {
-                while ($row = $stmt->fetch_assoc()) {
-                    $products[] = $row;
-                }
-                $stmt->free();
-            } else {
-                $status_color   = "red";
-                $status_message = "SQL Error while fetching products: " . htmlspecialchars($conn->error);
-            }
+        // Fetch products
+        $result = $conn->query("SELECT * FROM products ORDER BY id");
+        while ($row = $result->fetch_assoc()) {
+            $products[] = $row;
         }
+        $result->free();
+
+    } catch (Throwable $e) {
+        // Catch any error from the database operations
+        $status_color   = "red";
+        $status_message = "A database error occurred: " . htmlspecialchars($e->getMessage());
+        $products = []; // Ensure products is empty on error
     }
 }
 ?>
@@ -176,9 +177,9 @@ if ($conn->connect_error) {
 <h1>Men's Fashion Collection (Live Data)</h1>
 
 <div class="status-message"
-     style="color: <?= $status_color === 'green' ? '#065f46' : '#991b1b' ?>;
-            border: 1px solid <?= $status_color === 'green' ? '#10b981' : '#ef4444' ?>;
-            background-color: <?= $status_color === 'green' ? '#d1fae5' : '#fee2e2' ?>;">
+     style="color: <?= ($status_color === 'green') ? '#065f46' : '#991b1b' ?>;
+            border: 1px solid <?= ($status_color === 'green') ? '#10b981' : '#ef4444' ?>;
+            background-color: <?= ($status_color === 'green') ? '#d1fae5' : '#fee2e2' ?>;">
     <?= htmlspecialchars($status_message ?: 'Status unavailable.') ?>
 </div>
 
