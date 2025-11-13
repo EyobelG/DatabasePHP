@@ -1,42 +1,43 @@
 <?php
-// index.php
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// --- Use environment variables for credentials ---
-$servername = getenv('DB_HOST') ?: 'localhost';
-$username   = getenv('DB_USER') ?: 'utx299ug72uc9';
-$password   = getenv('DB_PASS') ?: 'DATABASEPWORD123"';
-$dbname     = getenv('DB_NAME') ?: 'dbkgyginqghrrn';
+$servername = "localhost";
+$username   = "utx299ug72uc9";
+$password   = "DATABASEPWORD123";
+$dbname     = "dbkgyginqghrrn";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    http_response_code(500);
-    exit("Database connection failed: " . htmlspecialchars($conn->connect_error));
+try {
+    $conn = new mysqli($servername, $username, $password, $dbname);
+    $result = $conn->query("SHOW TABLES");
+} catch (Exception $e) {
+    echo "ERROR: " . $e->getMessage();
 }
 
+
+// Run query
 $sql = "SELECT name, description, price, image_url FROM products ORDER BY name ASC";
 $result = $conn->query($sql);
 
+// If the query itself fails
 if ($result === false) {
     http_response_code(500);
     $conn->close();
     exit("Database query failed: " . htmlspecialchars($conn->error));
 }
 
+// Fetch rows into an array
 $products = [];
 while ($row = $result->fetch_assoc()) {
     $products[] = $row;
 }
 $result->free();
 
+// Helper to format price
 function format_price($p) {
     return '$' . number_format((float)$p, 2);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,7 +52,7 @@ function format_price($p) {
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #500082;
         }
         .product-list {
             display: flex;
@@ -73,10 +74,10 @@ function format_price($p) {
         .product-card img {
             display: block;
             width: 100%;
-            height: 220px;
-            object-fit: cover;
+            height: 220px;        
+            object-fit: cover;      
             border-radius: 6px;
-            margin-bottom: 12px;
+            margin-bottom: 12px;   
             background: #f4f4f4;
         }
         .product-card h2 {
@@ -105,7 +106,7 @@ function format_price($p) {
 </head>
 <body>
 
-<h1>Fashion Catalog</h1>
+<h1>Product Catalog</h1>
 
 <div class="product-list">
     <?php if (count($products) === 0): ?>
@@ -113,14 +114,20 @@ function format_price($p) {
     <?php else: ?>
         <?php foreach ($products as $p): ?>
             <div class="product-card">
-                <?php
-                    $name  = htmlspecialchars($p['name'] ?? '', ENT_QUOTES, 'UTF-8');
-                    $desc  = htmlspecialchars($p['description'] ?? '', ENT_QUOTES, 'UTF-8');
-                    $price = format_price($p['price'] ?? 0);
-                    $img   = trim((string)($p['image_url'] ?? ''));
-                    $imgPath = $img !== '' ? $img : 'images/placeholder.png';
-                ?>
-                <img src="<?= htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8'); ?>" alt="<?= $name; ?>" loading="lazy" />
+            <?php
+
+                $name  = htmlspecialchars($p['name'] ?? '', ENT_QUOTES, 'UTF-8');
+                $desc  = htmlspecialchars($p['description'] ?? '', ENT_QUOTES, 'UTF-8');
+                $price = format_price($p['price'] ?? 0);
+
+                // Image handling: prepend 'images/' if not already present
+                $img = trim((string)($p['image_url'] ?? ''));
+                $imgPath = $img !== '' ? 'images/' . basename($img) : 'images/placeholder.png';
+            ?>
+            <img src="<?= htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8'); ?>"
+                alt="<?= $name; ?>" loading="lazy" />
+
+
                 <h2><?= strtoupper($name); ?>
                     <span class="price"><?= $price; ?></span>
                 </h2>
@@ -132,7 +139,6 @@ function format_price($p) {
 
 </body>
 </html>
-
 <?php
+// Close connection at the end of the response
 $conn->close();
-?>
